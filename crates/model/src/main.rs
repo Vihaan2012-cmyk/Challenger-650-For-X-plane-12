@@ -1,9 +1,11 @@
 //! Writes the model, its textures, its dataref list, and pictures of it
 //! into a folder.
 //!
-//!     cl650-model [FOLDER] [--textures SIZE] [--no-pictures]
+//!     cl650-model [FOLDER] [--textures SIZE] [--no-pictures] [--always-lit]
 //!
-//! SIZE is the texture size in pixels: 1024, 2048, 4096 or 8192.
+//! SIZE is the texture size in pixels: 1024, 2048, 4096 or 8192. With
+//! --always-lit, screens and legends glow at full brightness whatever the
+//! lighting datarefs say, for looking at the model before a plugin exists.
 
 use std::fmt::Write;
 use std::path::PathBuf;
@@ -57,17 +59,24 @@ fn main() -> Result<(), String> {
     let mut folder = PathBuf::from("target/model");
     let mut texture_size = 1024;
     let mut pictures = true;
+    let mut always_lit = false;
     let mut arguments = std::env::args().skip(1);
     while let Some(argument) = arguments.next() {
         match argument.as_str() {
             "--textures" => texture_size = arguments.next().and_then(|s| s.parse().ok()).ok_or("--textures needs a size in pixels")?,
             "--no-pictures" => pictures = false,
+            "--always-lit" => always_lit = true,
             other => folder = PathBuf::from(other),
         }
     }
     let export = folder.join("xplane");
     std::fs::create_dir_all(&export).map_err(|e| e.to_string())?;
-    let write = |name: &str, text: &str| std::fs::write(export.join(name), text).map_err(|e| e.to_string());
+    // A light level runs from the first value to the second as its dataref
+    // does; from -1 to 0, a dataref that reads zero gives full brightness.
+    let write = |name: &str, text: &str| {
+        let text = if always_lit { text.replace("ATTR_light_level 0 1 ", "ATTR_light_level -1 0 ") } else { text.to_string() };
+        std::fs::write(export.join(name), text).map_err(|e| e.to_string())
+    };
 
     let scene = cockpit::build();
     println!("{} triangles, {} moving controls, {} legends", scene.merged().triangle_count(), scene.moving.len(), scene.labels.len());

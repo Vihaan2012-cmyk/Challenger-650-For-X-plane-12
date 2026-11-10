@@ -89,16 +89,38 @@ const CONTROLS: Controls = Controls {
     ],
 };
 
-/// Panel titles, at their places on the figure.
-pub const TITLES: [(f32, f32, &str); 20] = [
-    (590.0, 100.0, "LDG GEAR"), (447.0, 100.0, "NOSE STEER"), (500.0, 325.0, "TAWS"),
-    (230.0, 612.0, "GND SPOILERS"), (230.0, 775.0, "THRUST REVERSER"), (838.0, 545.0, "FLAPS"),
-    (268.0, 425.0, "PULL & TURN"), (760.0, 462.0, "ROLL DISC"),
-    (533.0, 862.0, "ENGINE CONTROL"), (475.0, 1100.0, "AIL TRIM"), (585.0, 1093.0, "RUD TRIM"),
-    (480.0, 1204.0, "STAB TRIM"), (590.0, 1204.0, "MACH TRIM"), (533.0, 1304.0, "YAW DAMPER"),
-    (533.0, 1400.0, "TUNE INHIBIT"), (250.0, 1068.0, "AUDIO"), (812.0, 1068.0, "AUDIO"),
+/// What is written on the pedestal, at its place on the figure: panel
+/// titles, group headings, switch positions and the spoiler lever's scale.
+pub const TITLES: [(f32, f32, &str); 45] = [
+    (440.0, 95.0, "NOSE STEER"), (600.0, 95.0, "LDG GEAR"), (470.0, 150.0, "ANTI SKID"), (470.0, 225.0, "MLG BAY OVHT TEST"), (560.0, 238.0, "DN LCK REL"),
+    (268.0, 425.0, "PITCH DISC"), (760.0, 462.0, "ROLL DISC"), (230.0, 612.0, "SPOILERS"), (230.0, 700.0, "EMER STOW"), (230.0, 775.0, "THRUST REVERSER"), (838.0, 545.0, "FLAPS"),
+    (345.0, 470.0, "0"), (345.0, 540.0, "1/4"), (345.0, 610.0, "1/2"), (345.0, 680.0, "3/4"), (345.0, 745.0, "MAX"),
+    (675.0, 705.0, "IDLE"), (675.0, 738.0, "SHUT OFF"),
+    (533.0, 862.0, "ENGINE CONTROL"), (460.0, 938.0, "APR"), (610.0, 938.0, "ENG SPEED"),
+    (487.0, 965.0, "FIREX MONITOR"), (600.0, 965.0, "FIRE DET AURAL"), (487.0, 1037.0, "SPS TEST"), (612.0, 1030.0, "LAMP TEST"),
+    (475.0, 1180.0, "AIL TRIM"), (585.0, 1183.0, "RUD TRIM"), (480.0, 1204.0, "STAB TRIM"), (590.0, 1204.0, "MACH TRIM"), (480.0, 1278.0, "ENGAGE"),
+    (533.0, 1304.0, "YAW DAMPER"), (468.0, 1372.0, "DISC"), (582.0, 1372.0, "ENGAGE"), (533.0, 1400.0, "TUNE INHIBIT PUSH"),
+    (450.0, 1482.0, "L DISPLAYS"), (533.0, 1482.0, "EICAS"), (617.0, 1482.0, "R DISPLAYS"), (450.0, 1562.0, "ADC"), (617.0, 1562.0, "AFCS SEL"),
+    (728.0, 1565.0, "L IRS"), (812.0, 1565.0, "R IRS"), (897.0, 1565.0, "FMS 3"),
     (250.0, 1652.0, "LIGHTING"), (533.0, 1662.0, "LIGHTING"), (812.0, 1652.0, "LIGHTING"),
 ];
+
+/// What is written on the keys of a cursor control panel and of a display
+/// control panel. The keys' names are right; which key carries which is
+/// approximate, as their places are.
+const CURSOR_KEYS: [&str; 14] = ["UPR MENU", "ESC", "MEM 1", "CHART", "JSTK", "ZOOM", "LWR MENU", "TFC", "TR/WX", "RADIO", "SUMRY", "AC ELEC", "HYD", "ATC"];
+const DISPLAY_KEYS: [&str; 8] = ["MENU", "ESC", "FRMT", "TFC", "TR/WX", "BRG SRC", "REFS", "RDR MENU"];
+
+/// The legend on a key, by its place in the list of keys: the two cursor
+/// control panels, then the two display control panels.
+pub fn key_legend(index: usize) -> &'static str {
+    match index {
+        0..=13 => CURSOR_KEYS[index],
+        14..=27 => CURSOR_KEYS[index - 14],
+        28..=35 => DISPLAY_KEYS[index - 28],
+        _ => DISPLAY_KEYS[(index - 36) % 8],
+    }
+}
 
 /// Aileron trim switch: middle, width, height.
 pub const AILERON_TRIM: (f32, f32, f32, f32) = (475.0, 1138.0, 60.0, 44.0);
@@ -205,6 +227,11 @@ impl Pedestal<'_> {
             };
             controls.add(scene, surface, figure, 0.0, v, prefix);
         }
+        for (index, (x, y, _, _)) in CONTROLS.keys.iter().enumerate() {
+            let (u, along) = position(*x, *y);
+            let (surface, v) = self.at(along);
+            scene.legend(surface, u, v, 0.0016, 0.0052, key_legend(index));
+        }
         for (number, (x, y)) in GUARDED.iter().enumerate() {
             let (u, along) = position(*x, *y);
             let (surface, v) = self.at(along);
@@ -242,6 +269,14 @@ mod tests {
                 assert!(((a.0 - b.0).powi(2) + (a.1 - b.1).powi(2)).sqrt() > 30.0, "{a:?} and {b:?}");
             }
         }
+    }
+
+    #[test]
+    fn every_key_has_a_legend_and_both_panels_of_a_kind_read_the_same() {
+        assert_eq!(CONTROLS.keys.len(), 2 * CURSOR_KEYS.len() + 2 * DISPLAY_KEYS.len());
+        assert_eq!(key_legend(0), key_legend(14));
+        assert_eq!(key_legend(28), key_legend(36));
+        assert_eq!(key_legend(43), "RDR MENU");
     }
 
     #[test]

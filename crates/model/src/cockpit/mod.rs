@@ -323,7 +323,7 @@ pub fn build() -> Scene {
     for (x, y, text) in pedestal::TITLES {
         let (u, along) = pedestal::position(x, y);
         let (surface, v) = on_pedestal.at(along);
-        scene.legend(surface, u, v, 0.0026, 0.0024, text);
+        scene.legend(surface, u, v, 0.0021, 0.0024, text);
     }
     for ((x, y), id) in pedestal::DISPLAY_UNITS.iter().zip(["1", "2", "3"]) {
         let (u, along) = pedestal::position(*x, *y);
@@ -807,7 +807,7 @@ mod tests {
     fn panels_carry_their_legends() {
         let scene = build();
         let has = |text: &str| scene.labels.iter().any(|l| l.text == text);
-        for text in ["ELECTRICAL POWER", "BATT MASTER", "FUEL", "ANTI-ICE", "FLAPS", "YAW DAMPER", "CBP-1", "EXEC"] {
+        for text in ["ELECTRICAL POWER", "BATT MASTER", "FUEL", "ANTI-ICE", "FLAPS", "YAW DAMPER", "CBP-1", "EXEC", "PITCH DISC", "FIREX MONITOR", "BRG SRC", "UPR MENU", "AFCS SEL"] {
             assert!(has(text), "{text}");
         }
         assert!(scene.labels.len() > 350, "{}", scene.labels.len());
