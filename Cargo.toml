@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = ["crates/installer-engine", "crates/installer-win", "crates/model"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+
+[profile.release]
+strip = true
+opt-level = "s"

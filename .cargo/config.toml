@@ -1,0 +1,5 @@
+# Link with the linker that ships inside the Rust toolchain. A MinGW found on
+# PATH adds its own application manifest to every program, which collides
+# with the one the installer embeds.
+[target.x86_64-pc-windows-gnu]
+rustflags = ["-C", "link-self-contained=yes"]

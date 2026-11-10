@@ -1,0 +1,10 @@
+[package]
+name = "cl650-model"
+description = "The Challenger 650 3D model, written as code"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "cl650-model"
+path = "src/main.rs"
